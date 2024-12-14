@@ -198,3 +198,180 @@
         (< amount MAX_TIP_AMOUNT)
     )
 )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;; Public ;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Main Tip Function
+(define-public (tip 
+    (recipient principal) 
+    (amount uint)
+    (token-type (string-ascii 32))
+)
+  (let 
+    (
+      (platform-fee (calculate-platform-fee amount))
+      (tip-amount (calculate-tip-amount amount platform-fee))
+    )
+    ;; Safety Checks
+    (asserts! (check-tip-amount amount) (err ERR_INVALID_AMOUNT))
+    
+    ;; Token Transfer Logic
+    (try! (transfer-tip recipient tip-amount))
+    (try! (transfer-platform-fee platform-fee))
+
+    ;; Update Stats
+    (update-sender-stats tx-sender amount)
+    (update-recipient-stats recipient amount)
+    
+    ;; Log Transaction
+    (log-transaction tx-sender recipient tip-amount platform-fee token-type)
+    
+    ;; Reward System
+    (update-reward-points tx-sender amount)
+    
+    (ok true)
+  )
+)
+
+;; Additional Function
+(define-public (update-user-reward-points (user principal) (reward-rate uint))
+  (match (map-get? user-tip-stats user)
+    current-stats 
+    (begin
+      (map-set user-tip-stats user 
+        (merge current-stats {
+          reward-points: (+ (get reward-points current-stats) reward-rate)
+        })
+      )
+      (ok true)
+    )
+    (err ERR_REWARD_UPDATE_FAILED)
+  )
+)
+
+
+(define-public (set-user-identity (user principal) (username (string-ascii 50)))
+    (begin
+        (map-set user-identity user {
+            username: username,
+            verified: true
+        })
+        (ok true)
+    )
+)
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;; Read-only functions ;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define-read-only (get-user-tip-stats (user principal))
+    (default-to 
+        { total-tips-sent: u0, total-tips-received: u0, reward-points: u0 }
+        (map-get? user-tip-stats user)
+    )
+)
+
+(define-read-only (get-user-identity (user principal))
+    (default-to 
+        { username: "", verified: false }
+        (map-get? user-identity user)
+    )
+)
+
+
+(define-read-only (get-transaction-logs (sender principal) (recipient principal) (amount uint) (fee uint) (token-type (string-ascii 32)))
+    (map-get? tip-history 
+        { 
+        sender: sender, 
+        recipient: recipient, 
+        timestamp: stacks-block-height 
+        }
+    )
+)
+
+(define-read-only (get-tip-amount (amount uint)) 
+    (check-tip-amount amount)
+)
+
+
+(define-read-only (get-updated-platform-stats (sender principal) (amount uint))
+  (let
+    (
+      ;; Fetch current stats or use default stats if not present
+      (current-stats (default-to 
+                        { total-tips-sent: u0, total-tips-received: u0, reward-points: u0 }
+                        (map-get? user-tip-stats sender)))
+    )
+    ;; Return the simulated updated stats without modifying the map
+    (merge
+      current-stats
+      {
+        total-tips-sent: (- (get total-tips-sent current-stats) amount)
+      }
+    )
+  )
+)
+
+
+(define-read-only (get-tips-recieved (recipient principal) (amount uint))
+  (let
+    (
+      ;; Calculate platform fee
+      (platform-fee (calculate-platform-fee amount))
+      
+      ;; Calculate actual tip amount after deducting platform fee
+      (actual-tip-amount (- amount platform-fee))
+    )
+    ;; Return just the actual tip amount
+    actual-tip-amount
+  )
+)
+
+(define-read-only (get-total-tips-received (recipient principal))
+  (let 
+    (
+      ;; Retrieve the current user stats
+      (current-stats (default-to 
+                        { total-tips-sent: u0, total-tips-received: u0, reward-points: u0 }
+                        (map-get? user-tip-stats recipient)))
+    )
+    ;; Return the total tips received
+    (get total-tips-received current-stats)
+  )
+)
+
+
+(define-read-only (get-total-tips-sent (sender principal))
+  (let 
+    (
+      ;; Retrieve the current user stats
+      (current-stats (default-to 
+                        { total-tips-sent: u0, total-tips-received: u0, reward-points: u0 }
+                        (map-get? user-tip-stats sender)))
+    )
+    ;; Return the total tips sent
+    (get total-tips-sent current-stats)
+  )
+)
+
+(define-read-only (get-reward-points (sender principal) (amount uint))
+  (let 
+    (
+      ;; Retrieve the current user stats
+      (current-stats (default-to 
+                        { total-tips-sent: u0, total-tips-received: u0, reward-points: u0 }
+                        (map-get? user-tip-stats sender)))
+    )
+    ;; Check if the amount meets the reward threshold
+    (if (>= amount REWARD_THRESHOLD)
+      ;; If threshold is met, calculate new reward points
+      (+ (get reward-points current-stats) REWARD_RATE)
+      ;; If threshold is not met, return current reward points
+      (get reward-points current-stats)
+    )
+  )
+)
