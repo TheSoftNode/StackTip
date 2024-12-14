@@ -23,3 +23,24 @@
 
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;; Maps ;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define-map user-tip-stats principal 
+  { 
+    total-tips-sent: uint, 
+    total-tips-received: uint, 
+    reward-points: uint 
+  }
+)
+
+(define-map tip-history 
+  { sender: principal, recipient: principal, timestamp: uint } 
+  { amount: uint, fee: uint, token-type: (string-ascii 32) }
+)
+
+(define-map user-identity principal {
+    username: (string-ascii 50),
+    verified: bool
+})
