@@ -165,7 +165,7 @@ export const Header = () =>
             {/* Removed walletConnected condition here */}
             <button
               onClick={toggleDashboard}
-              className="hidden md:flex items-center space-x-2 px-4 py-2 text-sm rounded-lg hover:bg-gray-100 transition-all duration-200 ease-in-out"
+              className="flex items-center space-x-2 px-4 py-2 text-sm rounded-lg hover:bg-gray-100 transition-all duration-200 ease-in-out"
             >
               {currentPage === 'home' ? (
                 <>
