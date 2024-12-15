@@ -158,7 +158,7 @@ export const Header = () =>
               </button>
             )}
             <div className="flex items-center space-x-2">
-              <div className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent transform hover:scale-105 transition-transform cursor-pointer">
+              <div className="text-xl md:text-2xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent transform hover:scale-105 transition-transform cursor-pointer">
                 TipStack
               </div>
             </div>
@@ -193,7 +193,7 @@ export const Header = () =>
             {!walletConnected ? (
               <button
                 onClick={() => setWalletModalOpen(true)}
-                className="bg-gradient-to-r from-violet-600 to-purple-600 text-white px-6 py-2 rounded-lg hover:opacity-90 transition-all duration-200 transform hover:scale-105 shadow-md"
+                className="text-base bg-gradient-to-r from-violet-600 to-purple-600 text-white px-6 py-2 rounded-lg hover:opacity-90 transition-all duration-200 transform hover:scale-105 shadow-md"
               >
                 Connect Wallet
               </button>
