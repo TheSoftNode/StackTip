@@ -35,16 +35,16 @@ interface WalletInfo
 
 export const Header = () =>
 {
-  const [isOpen, setIsOpen] = useState(false);
+  // const [isOpen, setIsOpen] = useState(false);
   const [isWalletModalOpen, setWalletModalOpen] = useState(false);
   const [isUsernameModalOpen, setUsernameModalOpen] = useState(false);
   const [username, setUsername] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [connectedWallets, setConnectedWallets] = useState<WalletInfo[]>([]);
-  console.log(isOpen)
 
-  const { walletConnected, setWalletConnected, walletAddress, setWalletAddress, currentPage, setCurrentPage } = useAppContext();
+  const { walletConnected, setWalletConnected, walletAddress, setWalletAddress, currentPage, setCurrentPage, isOpen, setIsOpen } = useAppContext();
 
+  console.log("isOpen", isOpen);
   const connectXverseWallet = async (): Promise<void> =>
   {
     try
@@ -170,12 +170,12 @@ export const Header = () =>
               {currentPage === 'home' ? (
                 <>
                   <Layout className="h-4 w-4" />
-                  <span>Dashboard</span>
+                  <span className='md:flex hidden'>Dashboard</span>
                 </>
               ) : (
-                <div className="flex gap-2 items-center justify-center ml-40">
-                  <Home className="h-4 w-4" />
-                  <span>Home</span>
+                <div className="flex gap-2 items-center justify-center md:ml-40">
+                  <Home className="h-4 w-4 text-indigo-500" />
+                  <span className='md:flex hidden'>Home</span>
                 </div>
               )}
             </button>
@@ -193,7 +193,7 @@ export const Header = () =>
             {!walletConnected ? (
               <button
                 onClick={() => setWalletModalOpen(true)}
-                className="text-base bg-gradient-to-r from-violet-600 to-purple-600 text-white px-6 py-2 rounded-lg hover:opacity-90 transition-all duration-200 transform hover:scale-105 shadow-md"
+                className="text-sm md:text-lg bg-gradient-to-r  from-violet-600 to-purple-600 text-white px-6 py-2 rounded-lg hover:opacity-90 transition-all duration-200 transform hover:scale-105 shadow-md"
               >
                 Connect Wallet
               </button>
