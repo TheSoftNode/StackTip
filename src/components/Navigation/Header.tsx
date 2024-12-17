@@ -20,6 +20,8 @@ export const Header = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  console.log(userData);
   
   const {walletAddress, setWalletAddress, currentPage, setCurrentPage } = useAppContext();
 

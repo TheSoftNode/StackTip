@@ -29,6 +29,8 @@ export const HeroSection = () =>
   // Inside your component
   const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
 
+  console.log(userData)
+
 
   const { walletAddress, setWalletAddress } = useAppContext();
   const { dispatch } = useContext(authContext);
