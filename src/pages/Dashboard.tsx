@@ -1,31 +1,36 @@
-import { useState} from 'react';
-import { 
-  Wallet, 
-  TrendingUp, 
-  
-  Award, 
-  ArrowUpCircle,
-  ArrowDownCircle,
-  Clock
-} from 'lucide-react';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer
-} from 'recharts';
+import { useState } from 'react';
+import
+  {
+    Wallet,
+    TrendingUp,
 
-export const Dashboard = () => {
+    Award,
+    ArrowUpCircle,
+    ArrowDownCircle,
+    Clock
+  } from 'lucide-react';
+import
+  {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+  } from "@/components/ui/card";
+import
+  {
+    LineChart,
+    Line,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    ResponsiveContainer
+  } from 'recharts';
+import QuickSend from '@/components/TippingSection/QuickSend';
+
+export const Dashboard = () =>
+{
   // const [showTipModal, setShowTipModal] = useState(false);
   const [tipAmount, setTipAmount] = useState('');
   const [recipientAddress, setRecipientAddress] = useState('');
@@ -85,7 +90,8 @@ export const Dashboard = () => {
     { name: 'Sun', sent: 40, received: 45 }
   ];
 
-  const handleSendTip = () => {
+  const handleSendTip = () =>
+  {
     // Implement tip sending logic here
     console.log('Sending tip:', { recipientAddress, tipAmount });
     // setShowTipModal(false);
@@ -99,9 +105,8 @@ export const Dashboard = () => {
           <Card key={index}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               {stat.icon}
-              <span className={`text-sm font-medium ${
-                stat.change.startsWith('+') ? 'text-green-600' : 'text-red-600'
-              }`}>
+              <span className={`text-sm font-medium ${stat.change.startsWith('+') ? 'text-green-600' : 'text-red-600'
+                }`}>
                 {stat.change}
               </span>
             </CardHeader>
@@ -129,17 +134,17 @@ export const Dashboard = () => {
                   <XAxis dataKey="name" />
                   <YAxis />
                   <Tooltip />
-                  <Line 
-                    type="monotone" 
-                    dataKey="sent" 
-                    stroke="#8b5cf6" 
-                    strokeWidth={2} 
+                  <Line
+                    type="monotone"
+                    dataKey="sent"
+                    stroke="#8b5cf6"
+                    strokeWidth={2}
                   />
-                  <Line 
-                    type="monotone" 
-                    dataKey="received" 
-                    stroke="#3b82f6" 
-                    strokeWidth={2} 
+                  <Line
+                    type="monotone"
+                    dataKey="received"
+                    stroke="#3b82f6"
+                    strokeWidth={2}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -156,7 +161,7 @@ export const Dashboard = () => {
           <CardContent>
             <div className="space-y-4">
               {recentTips.map((tip) => (
-                <div 
+                <div
                   key={tip.id}
                   className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                 >
@@ -186,7 +191,7 @@ export const Dashboard = () => {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
+        {/* <Card>
           <CardHeader>
             <CardTitle>Quick Send</CardTitle>
             <CardDescription>Send tips to your favorite creators</CardDescription>
@@ -225,7 +230,8 @@ export const Dashboard = () => {
               </button>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
+        <QuickSend />
 
         <Card>
           <CardHeader>
