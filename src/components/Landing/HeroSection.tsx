@@ -32,7 +32,7 @@ export const HeroSection = () =>
   console.log(userData)
 
 
-  const { walletAddress, setWalletAddress } = useAppContext();
+  const { walletAddress, setWalletAddress, setWalletConnected } = useAppContext();
   const { dispatch } = useContext(authContext);
 
   useEffect(() =>
@@ -44,15 +44,17 @@ export const HeroSection = () =>
         const userData = await userSession.handlePendingSignIn();
         setIsAuthenticated(true);
         setUserData(userData);
-        setWalletAddress(userData?.profile?.stxAddress?.mainnet ?? null);
-        await checkUserExists(userData?.profile?.stxAddress?.mainnet);
+        setWalletAddress(userData?.profile?.stxAddress?.testnet ?? null);
+        setWalletConnected(true);
+        await checkUserExists(userData?.profile?.stxAddress?.testnet);
       } else if (userSession.isUserSignedIn())
       {
         const userData = getUserData();
         setIsAuthenticated(true);
         setUserData(userData);
-        setWalletAddress(userData?.profile?.stxAddress?.mainnet ?? null);
-        await checkUserExists(userData?.profile?.stxAddress?.mainnet);
+        setWalletAddress(userData?.profile?.stxAddress?.testnet ?? null);
+        setWalletConnected(true);
+        await checkUserExists(userData?.profile?.stxAddress?.testnet);
       }
     };
 
@@ -65,7 +67,7 @@ export const HeroSection = () =>
 
     try
     {
-      const response = await fetch(`http://127.0.0.1:5000/api/v1/users/exists?wallet=${walletAddress.toLowerCase()}`, {
+      const response = await fetch(`https://stx-tip.onrender.com/api/v1/users/exists?wallet=${walletAddress.toLowerCase()}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -115,7 +117,7 @@ export const HeroSection = () =>
     {
       setIsLoading(true);
 
-      const response = await fetch('http://127.0.0.1:5000/api/v1/users/connect-wallet', {
+      const response = await fetch('https://stx-tip.onrender.com/api/v1/users/connect-wallet', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

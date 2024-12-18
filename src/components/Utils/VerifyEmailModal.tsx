@@ -23,6 +23,7 @@ const VerifyEmailModal: FC<VerifyEmailModalProps> = ({
     const { activationToken, activation_Code } = useContext(authContext);
     const [isLoading, setIsLoading] = useState(false);
 
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) =>
     {
         e.preventDefault();
@@ -31,7 +32,7 @@ const VerifyEmailModal: FC<VerifyEmailModalProps> = ({
 
         try
         {
-            const response = await fetch('http://127.0.0.1:5000/api/v1/users/verify-account', {
+            const response = await fetch('https://stx-tip.onrender.com/api/v1/users/verify-account', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -44,7 +45,6 @@ const VerifyEmailModal: FC<VerifyEmailModalProps> = ({
 
             const result = await response.json();
 
-            console.log(result);
 
             if (response.ok)
             {

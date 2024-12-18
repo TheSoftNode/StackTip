@@ -1,8 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Bell, Menu, Home, Layout, LogOutIcon, WalletIcon } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { useAppContext } from '@/context/AppContext';
 import {
   authenticate,
@@ -11,37 +8,80 @@ import {
   userSession,
 } from '@/lib/auth';
 import { UserData } from '@/lib/type';
-
-
+import toast from 'react-hot-toast';
+import { authContext } from '@/context/AuthContext';
+import EmailModal from '../Utils/EmailModal';
+import VerifyEmailModal from '../Utils/VerifyEmailModal';
 
 export const Header = () => {
-  const [isUsernameModalOpen, setUsernameModalOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+
+  const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
 
   console.log(userData);
   
-  const {walletAddress, setWalletAddress, currentPage, setCurrentPage } = useAppContext();
+  const {walletAddress, setWalletAddress, currentPage, setCurrentPage, setWalletConnected } = useAppContext();
+  const { dispatch } = useContext(authContext);
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      if (userSession.isSignInPending()) {
-        const userData = await userSession.handlePendingSignIn();
-        setIsAuthenticated(true);
-        setUserData(userData);
-        setWalletAddress(userData?.profile?.stxAddress?.mainnet ?? null);
-      } else if (userSession.isUserSignedIn()) {
-        const userData = getUserData();
-        setIsAuthenticated(true);
-        setUserData(userData);
-        setWalletAddress(userData?.profile?.stxAddress?.mainnet ?? null);
-      }
-    };
+  useEffect(() =>
+    {
+      const checkAuth = async () =>
+      {
+        if (userSession.isSignInPending())
+        {
+          const userData = await userSession.handlePendingSignIn();
+          setIsAuthenticated(true);
+          setUserData(userData);
+          setWalletAddress(userData?.profile?.stxAddress?.testnet ?? null);
+          setWalletConnected(true);
+          await checkUserExists(userData?.profile?.stxAddress?.testnet);
+        } else if (userSession.isUserSignedIn())
+        {
+          const userData = getUserData();
+          setIsAuthenticated(true);
+          setUserData(userData);
+          setWalletAddress(userData?.profile?.stxAddress?.testnet ?? null);
+          setWalletConnected(true);
+          await checkUserExists(userData?.profile?.stxAddress?.testnet);
+        }
+      };
+  
+      checkAuth();
+    }, []);
 
-    checkAuth();
-  }, []);
+    const checkUserExists = async (walletAddress: string | null) =>
+      {
+        if (!walletAddress) return;
+    
+        try
+        {
+          const response = await fetch(`https://stx-tip.onrender.com/api/v1/users/exists?wallet=${walletAddress.toLowerCase()}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+    
+    
+          if (!response.ok)
+          {
+            throw new Error('Failed to check user existence');
+          }
+    
+          const data = await response.json();
+          if (!data.exists)
+          {
+            setIsEmailModalOpen(true);
+          }
+        } catch (error)
+        {
+          console.error('Failed to check user existence:', error);
+        }
+      };
 
   const handleAuth = () => {
     if (isAuthenticated) {
@@ -62,38 +102,62 @@ export const Header = () => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
 
-  const handleUsernameSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!email.trim().toLowerCase() || !walletAddress) return;
-
-    try {
-      setIsLoading(true);
-      const memoCode = Math.random().toString(36).substring(2, 15);
-
-      const response = await fetch('http://127.0.0.1:5000/api/v1/users/connect-wallet', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          walletAddress,
-          email: email.trim().toLowerCase(),
-          memoCode,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to save user data');
+  const handleEmailSubmit = async (e: React.FormEvent<HTMLFormElement>) =>
+    {
+      e.preventDefault();
+      if (!email.trim().toLowerCase() || !walletAddress?.toLowerCase()) return;
+  
+      console.log('email:', email);
+      console.log('wallet:', walletAddress);
+  
+      try
+      {
+        setIsLoading(true);
+  
+        const response = await fetch('https://stx-tip.onrender.com/api/v1/users/connect-wallet', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: email.trim().toLowerCase(),
+            wallet: walletAddress
+          }),
+        });
+  
+        const result = await response.json();
+  
+        if (response.ok)
+        {
+          dispatch({
+            type: "ACTIVATE_USER",
+            payload: {
+              activationToken: result.verificationToken,
+              activation_Code: result.activationCode
+            }
+          })
+  
+          console.log(result.activationCode)
+  
+          setIsLoading(false);
+          setIsVerifyModalOpen(true);
+        }
+        else
+        {
+          toast.error(result.message);
+          setIsLoading(false);
+        }
+  
+        setIsEmailModalOpen(false);
+      } catch (error: any)
+      {
+        console.error('Failed to save user data:', error);
+        toast.error(error.message);
+      } finally
+      {
+        setIsLoading(false);
       }
-
-      setUsernameModalOpen(false);
-    } catch (error) {
-      console.error('Failed to save user data:', error);
-      alert('Failed to save user data. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
 
   return (
     <>
@@ -116,7 +180,7 @@ export const Header = () => {
             {isAuthenticated && (
               <button
                 onClick={toggleDashboard}
-                className={`flex items-center space-x-2 px-2 py-1 rounded-lg transition-all duration-200 border border-violet-600 ${
+                className={`flex items-center space-x-2 px-2 py-1 rounded-lg transition-all duration-200  ${
                   currentPage === (currentPage === 'home' ? 'dashboard' : 'home')
                     ? 'bg-gradient-to-r from-violet-600/10 to-purple-600/10 text-purple-700'
                     : 'hover:bg-gray-100'
@@ -124,11 +188,11 @@ export const Header = () => {
               >
                 {currentPage === 'home' ? (
                   <>
-                    <Layout className="h-4 w-4 text-purple-600" />
+                    <Layout className="h-6 w- text-purple-600" />
                     <span className="md:flex hidden ">Dashboard</span>
                   </>
                 ) : (
-                  <div className="flex gap-2 items-center justify-center">
+                  <div className="flex gap-2 items-center justify-center lg:ml-[200px]">
                     <Home className="h-4 w-4 text-purple-600" />
                     <span className="md:flex hidden">Home</span>
                   </div>
@@ -175,30 +239,22 @@ export const Header = () => {
         </div>
       </header>
 
-      {/* Username Modal */}
-      <Dialog open={isUsernameModalOpen} onOpenChange={setUsernameModalOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Set Your Username</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleUsernameSubmit} className="grid gap-4 py-4">
-            <Input
-              placeholder="Enter your username"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full"
-              disabled={isLoading}
-            />
-            <Button 
-              type="submit" 
-              disabled={isLoading || !email.trim().toLowerCase()} 
-              className="w-full"
-            >
-              {isLoading ? 'Saving...' : 'Continue'}
-            </Button>
-          </form>
-        </DialogContent>
-      </Dialog>
+      {/* Email Modal */}
+      <EmailModal
+        isOpen={isEmailModalOpen}
+        onOpenChange={setIsEmailModalOpen}
+        email={email}
+        setEmail={setEmail}
+        handleSubmit={handleEmailSubmit}
+        isLoading={isLoading}
+      />
+
+      {/* Verify Email Modal */}
+      <VerifyEmailModal
+        isOpen={isVerifyModalOpen}
+        onOpenChange={setIsVerifyModalOpen}
+        userEmail={email}
+      />
     </>
   );
 };
