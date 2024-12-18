@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import
   {
     Wallet,
@@ -31,9 +30,7 @@ import QuickSend from '@/components/TippingSection/QuickSend';
 
 export const Dashboard = () =>
 {
-  // const [showTipModal, setShowTipModal] = useState(false);
-  const [tipAmount, setTipAmount] = useState('');
-  const [recipientAddress, setRecipientAddress] = useState('');
+ 
 
   // Sample data - would be replaced with real blockchain data
   const stats = [
@@ -90,12 +87,7 @@ export const Dashboard = () =>
     { name: 'Sun', sent: 40, received: 45 }
   ];
 
-  const handleSendTip = () =>
-  {
-    // Implement tip sending logic here
-    console.log('Sending tip:', { recipientAddress, tipAmount });
-    // setShowTipModal(false);
-  };
+ 
 
   return (
     <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
