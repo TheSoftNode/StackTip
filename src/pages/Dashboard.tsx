@@ -183,46 +183,7 @@ export const Dashboard = () =>
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* <Card>
-          <CardHeader>
-            <CardTitle>Quick Send</CardTitle>
-            <CardDescription>Send tips to your favorite creators</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Recipient Address
-                </label>
-                <input
-                  type="text"
-                  className="w-full p-2 border rounded-lg"
-                  placeholder="Enter STX address"
-                  value={recipientAddress}
-                  onChange={(e) => setRecipientAddress(e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Amount (STX)
-                </label>
-                <input
-                  type="number"
-                  className="w-full p-2 border rounded-lg"
-                  placeholder="0.00"
-                  value={tipAmount}
-                  onChange={(e) => setTipAmount(e.target.value)}
-                />
-              </div>
-              <button
-                onClick={handleSendTip}
-                className="w-full bg-violet-600 text-white py-2 rounded-lg hover:bg-violet-700 transition-colors"
-              >
-                Send Tip
-              </button>
-            </div>
-          </CardContent>
-        </Card> */}
+        
         <QuickSend />
 
         <Card>
