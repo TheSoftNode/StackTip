@@ -8,27 +8,34 @@ import { TipConfirmationDialog } from './TipConfirmationDialog';
 import { useAppContext } from '@/context/AppContext';
 import { RecipientInput } from './RecipientInput';
 
-interface UserInfo
-{
+interface UserInfo {
     email?: string;
     walletAddress?: string;
     found?: boolean;
     error?: string;
 }
 
-export const QuickSend: React.FC = () =>
-{
+interface QuickSendProps {
+    initialAddress?: string;
+}
+
+export const QuickSend: React.FC<QuickSendProps> = ({ initialAddress }) => {
     const { walletConnected } = useAppContext();
-    const [recipientInput, setRecipientInput] = useState<string>('');
+    const [recipientInput, setRecipientInput] = useState<string>(initialAddress || '');
     const [amount, setAmount] = useState<string>('');
     const [userInfo, setUserInfo] = useState<UserInfo>({});
     const [searching, setSearching] = useState<boolean>(false);
     const [validationError, setValidationError] = useState<string>('');
     const [showConfirmDialog, setShowConfirmDialog] = useState<boolean>(false);
 
-    const resetForm = () =>
-    {
-        setRecipientInput('');
+    useEffect(() => {
+        if (initialAddress) {
+            fetchUserInfo(initialAddress);
+        }
+    }, [initialAddress]);
+
+    const resetForm = () => {
+        setRecipientInput(initialAddress || '');
         setAmount('');
         setUserInfo({});
         setShowConfirmDialog(false);
@@ -36,61 +43,47 @@ export const QuickSend: React.FC = () =>
     };
 
     const { processTip, isProcessing } = useTipTransaction({
-        onSuccess: () =>
-        {
+        onSuccess: () => {
             resetForm();
         },
-        onError: (error) =>
-        {
+        onError: (error) => {
             setValidationError(error);
             setShowConfirmDialog(false);
         }
     });
 
-    const fetchUserInfo = async (input: string) =>
-    {
+    const fetchUserInfo = async (input: string) => {
         setSearching(true);
         setValidationError('');
 
-        try
-        {
-            if (validateStacksAddress(input))
-            {
+        try {
+            if (validateStacksAddress(input)) {
                 const data = await fetchUserWalletInfo(input);
                 setUserInfo({
                     email: data.data.email,
                     walletAddress: input,
                     found: !!data.data.email
                 });
-            } else
-            {
+            } else {
                 setValidationError('Invalid Stacks address format');
             }
-        } catch (error)
-        {
+        } catch (error) {
             setUserInfo({ error: 'Failed to fetch user info' });
-            if (!walletConnected)
-            {
+            if (!walletConnected) {
                 setValidationError('Please connect your wallet first to continue');
-            } else
-            {
+            } else {
                 setValidationError('Unverified wallet address');
             }
-        } finally
-        {
+        } finally {
             setSearching(false);
         }
     };
 
-    useEffect(() =>
-    {
-        const timeoutId = setTimeout(() =>
-        {
-            if (recipientInput && recipientInput.length > 2)
-            {
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            if (recipientInput && recipientInput.length > 2) {
                 fetchUserInfo(recipientInput);
-            } else
-            {
+            } else {
                 setUserInfo({});
                 setValidationError('');
             }
@@ -99,16 +92,13 @@ export const QuickSend: React.FC = () =>
         return () => clearTimeout(timeoutId);
     }, [recipientInput]);
 
-    const handleSendTip = () =>
-    {
-        if (!recipientInput || !amount)
-        {
+    const handleSendTip = () => {
+        if (!recipientInput || !amount) {
             setValidationError('Please verify recipient and amount');
             return;
         }
 
-        if (!validateStacksAddress(recipientInput))
-        {
+        if (!validateStacksAddress(recipientInput)) {
             setValidationError('Invalid wallet address');
             return;
         }
@@ -124,30 +114,13 @@ export const QuickSend: React.FC = () =>
             </CardHeader>
             <CardContent>
                 <div className="space-y-4">
-                    {/* <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Recipient Address
-            </label>
-            <input
-              type="text"
-              className="block w-full px-4 py-3 border border-gray-200 rounded-xl bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all duration-200"
-              placeholder="Enter STX address"
-              value={recipientInput}
-              onChange={(e) => setRecipientInput(e.target.value)}
-            />
-            {validationError && (
-              <p className="mt-1 text-sm text-red-600">{validationError}</p>
-            )}
-            {userInfo.found && (
-              <p className="mt-1 text-sm text-green-600">Verified recipient</p>
-            )}
-          </div> */}
                     <RecipientInput
                         recipientInput={recipientInput}
                         setRecipientInput={setRecipientInput}
                         searching={searching}
                         validationError={validationError}
                         userInfo={userInfo}
+                        disabled={!!initialAddress}
                     />
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">

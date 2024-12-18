@@ -2,39 +2,39 @@ import { useContext, useEffect, useState } from 'react';
 import { ArrowRight, Sparkles, Users, Shield, Zap } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useAppContext } from '@/context/AppContext';
 import
-{
-  authenticate,
-  getUserData,
-  signUserOut,
-  userSession,
-} from '@/lib/auth';
+  {
+    authenticate,
+    getUserData,
+    signUserOut,
+    userSession,
+  } from '@/lib/auth';
 import { UserData } from '@/lib/type';
 import EmailModal from '../Utils/EmailModal';
 import VerifyEmailModal from '../Utils/VerifyEmailModal';
-
+import { QuickSend } from '@/components/TippingSection/QuickSend';
 import { authContext } from '@/context/AuthContext';
 
+interface HeroSectionProps { }
 
-
-export const HeroSection = () =>
+export const HeroSection: React.FC<HeroSectionProps> = () =>
 {
-  const [email, setEmail] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [userData, setUserData] = useState<UserData | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState<boolean>(false);
+  const [isVerifyModalOpen, setIsVerifyModalOpen] = useState<boolean>(false);
+  const [isQuickSendOpen, setIsQuickSendOpen] = useState<boolean>(false);
 
-  // Inside your component
-  const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
-
-  console.log(userData)
-
-
-  const { walletAddress, setWalletAddress, setWalletConnected } = useAppContext();
+  const { walletAddress, setWalletAddress, setWalletConnected, setCurrentPage } = useAppContext();
   const { dispatch } = useContext(authContext);
 
+  console.log(userData);
+
+  // Keep all the existing useEffect and functions exactly as they were
   useEffect(() =>
   {
     const checkAuth = async () =>
@@ -74,7 +74,6 @@ export const HeroSection = () =>
         },
       });
 
-
       if (!response.ok)
       {
         throw new Error('Failed to check user existence');
@@ -90,7 +89,6 @@ export const HeroSection = () =>
       console.error('Failed to check user existence:', error);
     }
   };
-
 
   const handleAuth = () =>
   {
@@ -109,9 +107,6 @@ export const HeroSection = () =>
   {
     e.preventDefault();
     if (!email.trim().toLowerCase() || !walletAddress?.toLowerCase()) return;
-
-    console.log('email:', email);
-    console.log('wallet:', walletAddress);
 
     try
     {
@@ -138,14 +133,11 @@ export const HeroSection = () =>
             activationToken: result.verificationToken,
             activation_Code: result.activationCode
           }
-        })
-
-        console.log(result.activationCode)
+        });
 
         setIsLoading(false);
         setIsVerifyModalOpen(true);
-      }
-      else
+      } else
       {
         toast.error(result.message);
         setIsLoading(false);
@@ -162,10 +154,17 @@ export const HeroSection = () =>
     }
   };
 
+  const handleStartGiving = () =>
+  {
+    if (isAuthenticated)
+    {
+      setIsQuickSendOpen(true);
+    }
+  };
 
   return (
     <div className="relative overflow-hidden bg-gradient-to-b from-gray-900 via-violet-950 to-purple-950">
-      {/* Animated background elements */}
+      {/* Keep all existing background elements and styling */}
       <div className="absolute inset-0 overflow-hidden">
         <div
           className="absolute w-full h-full opacity-30"
@@ -177,11 +176,10 @@ export const HeroSection = () =>
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:24px_24px]" />
       </div>
 
-      {/* Content container */}
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-10">
         <div className="grid lg:grid-cols-2 gap-8 items-center justify-center">
-          {/* Left column - Text content */}
           <div className="space-y-6 text-center lg:text-left">
+            {/* Keep all existing content */}
             <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-300 text-sm font-medium mb-4">
               <Zap className="w-4 h-4 mr-2" />
               Instant Blockchain Transfers
@@ -205,13 +203,22 @@ export const HeroSection = () =>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               {isAuthenticated ? (
-                <Button
-                  className="bg-green-500/90 text-white px-8 py-6 rounded-xl text-lg shadow-lg shadow-green-500/25"
-                  disabled
-                >
-                  <Sparkles className="mr-2 h-5 w-5" />
-                  Start Giving
-                </Button>
+                <>
+                  <Button
+                    onClick={handleStartGiving}
+                    className="bg-green-500/90 text-white px-8 py-6 rounded-xl text-lg shadow-lg shadow-green-500/25"
+                  >
+                    <Sparkles className="mr-2 h-5 w-5" />
+                    Start Giving
+                  </Button>
+                  <Button
+                    onClick={() => setCurrentPage('verified-users')}
+                    className="bg-violet-500/90 text-white px-8 py-6 rounded-xl text-lg shadow-lg shadow-violet-500/25"
+                  >
+                    <Users className="mr-2 h-5 w-5" />
+                    View Verified Users
+                  </Button>
+                </>
               ) : (
                 <Button
                   onClick={handleAuth}
@@ -221,11 +228,9 @@ export const HeroSection = () =>
                   <ArrowRight className="ml-2 h-5 w-5 inline-block group-hover:translate-x-1 transition-transform" />
                 </Button>
               )}
-
             </div>
 
-            {/* Feature highlights */}
-            <div className="grid sm:grid-cols-2 justify-center  items-center gap-6 mt-8">
+            <div className="grid sm:grid-cols-2 justify-center items-center gap-6 mt-8">
               <div className="flex items-center justify-center space-x-3 bg-white/5 p-3 rounded-lg backdrop-blur-sm">
                 <Users className="h-5 w-5 text-violet-300" />
                 <span className="text-gray-200">Global Community</span>
@@ -237,7 +242,7 @@ export const HeroSection = () =>
             </div>
           </div>
 
-          {/* Right column - Decorative element */}
+          {/* Keep the decorative right column */}
           <div className="relative hidden lg:block">
             <div className="absolute inset-0 bg-gradient-to-tr from-violet-500/20 to-purple-500/20 rounded-3xl transform rotate-3 animate-pulse" />
             <div className="relative bg-white/10 backdrop-blur-lg p-8 rounded-3xl shadow-2xl border border-white/10">
@@ -247,10 +252,8 @@ export const HeroSection = () =>
                     <Sparkles className="h-12 w-12 text-violet-300 mx-auto" />
                   </div>
                   <div className="text-center space-y-2">
-
                     <h3 className="text-xl font-semibold text-white">Secure Transactions</h3>
                     <p className="text-gray-300">Powered by Stacks Blockchain</p>
-
                   </div>
                 </div>
               </div>
@@ -259,7 +262,14 @@ export const HeroSection = () =>
         </div>
       </div>
 
-      {/* Email Modal */}
+      {/* Add QuickSend Modal */}
+      <Dialog open={isQuickSendOpen} onOpenChange={setIsQuickSendOpen}>
+        <DialogContent className="sm:max-w-md">
+          <QuickSend />
+        </DialogContent>
+      </Dialog>
+
+      {/* Keep existing modals */}
       <EmailModal
         isOpen={isEmailModalOpen}
         onOpenChange={setIsEmailModalOpen}
@@ -269,7 +279,6 @@ export const HeroSection = () =>
         isLoading={isLoading}
       />
 
-      {/* Verify Email Modal */}
       <VerifyEmailModal
         isOpen={isVerifyModalOpen}
         onOpenChange={setIsVerifyModalOpen}

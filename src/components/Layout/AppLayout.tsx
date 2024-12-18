@@ -7,6 +7,7 @@ import { History } from '@/pages/History';
 import { Rewards } from '@/pages/Rewards';
 import { Settings } from '@/pages/Settings';
 import { HomePage } from '@/pages/HomePage';
+import VerifiedUsers from '@/pages/VerifiedUsers';
 
 export const AppLayout: React.FC = () =>
 {
@@ -37,6 +38,8 @@ export const AppLayout: React.FC = () =>
                 return <Rewards />;
             case 'settings':
                 return <Settings />;
+            case 'verified-users':
+                return <VerifiedUsers />;
             default:
                 return <Dashboard />;
         }

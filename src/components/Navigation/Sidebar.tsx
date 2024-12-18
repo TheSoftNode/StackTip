@@ -1,19 +1,27 @@
 import React from 'react';
-import { Trophy, History, Gift, Settings, LogOut, X } from 'lucide-react';
+import { Trophy, History, Gift, Settings, LogOut, X, Users } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
 import { NavItem } from '@/lib/type';
+import {
+  signUserOut,
+} from '@/lib/auth';
 
-export const Sidebar: React.FC = () => {
-  const { isOpen, setIsOpen, currentPage, setCurrentPage } = useAppContext();
-
-  console.log("isOpen", isOpen);
+export const Sidebar: React.FC = () =>
+{
+  const { isOpen, setIsOpen, currentPage, setCurrentPage, setWalletConnected } = useAppContext();
 
   const navItems: NavItem[] = [
     { name: 'Dashboard', icon: <Trophy className="h-5 w-5" />, id: 'dashboard' },
     { name: 'History', icon: <History className="h-5 w-5" />, id: 'history' },
     { name: 'Rewards', icon: <Gift className="h-5 w-5" />, id: 'rewards' },
-    { name: 'Settings', icon: <Settings className="h-5 w-5" />, id: 'settings' }
+    { name: 'Settings', icon: <Settings className="h-5 w-5" />, id: 'settings' },
+    { name: 'Verified Users', icon: <Users className="h-5 w-5" />, id: 'verified-users' }
   ];
+
+  const handleLogout = async () =>{
+    await signUserOut();
+    setWalletConnected(false);
+  }
 
   return (
     <div className={`fixed top-0 left-0 h-full bg-gradient-to-b from-violet-900 to-purple-800 text-white w-64 p-6 transform transition-transform duration-200 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 z-30`}>
@@ -29,9 +37,8 @@ export const Sidebar: React.FC = () => {
           <button
             key={item.id}
             onClick={() => setCurrentPage(item.id)}
-            className={`flex items-center space-x-3 w-full p-3 rounded-lg transition-colors ${
-              currentPage === item.id ? 'bg-white/10' : 'hover:bg-white/5'
-            }`}
+            className={`flex items-center space-x-3 w-full p-3 rounded-lg transition-colors ${currentPage === item.id ? 'bg-white/10' : 'hover:bg-white/5'
+              }`}
           >
             {item.icon}
             <span>{item.name}</span>
@@ -40,7 +47,7 @@ export const Sidebar: React.FC = () => {
       </nav>
 
       <div className="absolute bottom-6 left-6 right-6">
-        <button className="flex items-center space-x-3 w-full p-3 rounded-lg hover:bg-white/5 text-red-300">
+        <button onClick={handleLogout} className="flex items-center space-x-3 w-full p-3 rounded-lg hover:bg-white/5 text-red-300">
           <LogOut className="h-5 w-5" />
           <span>Disconnect</span>
         </button>
